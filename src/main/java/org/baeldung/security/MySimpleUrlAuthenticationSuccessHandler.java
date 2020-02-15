@@ -56,7 +56,7 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
     private void loginNotification(Authentication authentication, HttpServletRequest request) {
         try {
             if (authentication.getPrincipal() instanceof User) {
-                deviceService.verifyDevice(((User)authentication.getPrincipal()), request);
+                //deviceService.verifyDevice(((User)authentication.getPrincipal()), request);
             }
         } catch (Exception e) {
             logger.error("An error occurred while verifying device or location", e);
@@ -78,6 +78,7 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
     protected String determineTargetUrl(final Authentication authentication) {
         boolean isUser = false;
         boolean isAdmin = false;
+        boolean isManager = false;
         final Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (final GrantedAuthority grantedAuthority : authorities) {
             if (grantedAuthority.getAuthority().equals("READ_PRIVILEGE")) {
@@ -85,6 +86,11 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
             } else if (grantedAuthority.getAuthority().equals("WRITE_PRIVILEGE")) {
                 isAdmin = true;
                 isUser = false;
+                break;
+            } else if (grantedAuthority.getAuthority().equals("MANAGER_PRIVILEGE")) {
+                isAdmin = false;
+                isUser = false;
+                isManager = true;
                 break;
             }
         }
@@ -100,6 +106,8 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
             return "/homepage.html?user="+username;
         } else if (isAdmin) {
             return "/console.html";
+        } else if (isManager) {
+            return "/management.html";
         } else {
             throw new IllegalStateException();
         }
